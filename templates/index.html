@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clipboard Text</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        #copy-button {
+            transition: background-color 0.3s ease;
+        }
+        #copy-button.copied {
+            background-color: green;
+            color: white;
+        }
+    </style>
+    <script>
+        function fetchClipboardText() {
+            $.ajax({
+                url: "/clipboard",
+                method: "GET",
+                success: function(data) {
+                    $('#clipboard-text').html(data.clipboard_text);
+                }
+            });
+        }
+
+        function copyToClipboard() {
+            var textToCopy = document.getElementById("clipboard-text").innerText;
+
+            // Create a temporary textarea element
+            var tempTextArea = document.createElement("textarea");
+            tempTextArea.value = textToCopy;
+            document.body.appendChild(tempTextArea);
+
+            // Select the text
+            tempTextArea.select();
+            tempTextArea.setSelectionRange(0, 99999); // For mobile devices
+
+            try {
+                // Copy the text
+                document.execCommand("copy");
+
+                // Highlight the button
+                var copyButton = document.getElementById("copy-button");
+                copyButton.classList.add("copied");
+
+                // Remove the highlight after 2 seconds
+                setTimeout(function() {
+                    copyButton.classList.remove("copied");
+                }, 2000);
+            } catch (err) {
+                console.error("Failed to copy text: " + err);
+            }
+
+            // Remove the temporary textarea element
+            document.body.removeChild(tempTextArea);
+        }
+
+        $(document).ready(function() {
+            fetchClipboardText();
+            setInterval(fetchClipboardText, 2000);  // Poll every 2 seconds
+        });
+    </script>
+</head>
+<body>
+    <h1>Clipboard Text</h1>
+    <pre id="clipboard-text"></pre>
+    <button id="copy-button" onclick="copyToClipboard()">Copy Text</button>
+</body>
+</html>
